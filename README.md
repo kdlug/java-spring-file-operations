@@ -33,3 +33,82 @@ Access modes:
 - *FileInputStream/FileOutputStream* - reading/writing binary file byte by byte
 - *DataInputStream/DataOutputStream* - binary reading/writing of primitive types (f.ex. readInt()/writeInt())
 
+## try-with-resources
+
+
+Each time we have to remember to close resources.
+
+```java
+BufferedReader fileReader = null;
+
+try {
+     fileReader = new BufferedReader(new FileReader(inputPath));
+     fileReader.readLine();
+} catch (FileNotFoundException e) {
+     e.printStackTrace();
+} catch (IOException e) {
+     e.printStackTrace();
+} finally {
+    if (fileReader != null) {
+         try {
+             fileReader.close();
+         } catch (IOException e) {
+             e.printStackTrace();
+         }
+    }
+}
+```
+
+In try() block we can initialize variables which can be automatically closed
+
+```java
+try (BufferedReader fileReader = new BufferedReader(new FileReader(filePath))) {
+    fileReader.readLine();
+} catch (FileNotFoundException e) {
+    e.printStackTrace();
+} catch (IOException e) {
+    e.printStackTrace();
+}
+```
+
+We can also initialize more variables. Eeach variable will be properly closed.
+
+```java
+try(
+    BufferedReader fileReader = new BufferedReader(new FileReader(inputPath));
+    BufferedWriter fileWriter = new BufferedWriter(new FileWriter(outputPath))
+) {
+    String line = fileReader.readLine();
+    fileWriter.write(line);
+}
+```
+
+It works because BufferedWriter and BufferedReader impement java.lang.AutoCloseable interface.
+
+
+## Custom context manager
+
+```java
+public class MyContextManager implements AutoCloseable {
+    public MyContextManager() {
+        System.out.println("starting");
+    }
+
+    public void doSomething() {
+        System.out.println("doing something");
+    }
+
+    public void close() {
+        System.out.println("closing");
+    }
+}
+
+public class MyContextManagerMain {
+    public static void main(String[] args) {
+        try (MyContextManager manager = new MyContextManager()) {
+            manager.doSomething();
+        }
+    }
+}
+```
+

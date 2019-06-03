@@ -98,6 +98,19 @@ public class Application implements CommandLineRunner {
                 inputStream.close();
             }
         }
+
+        /**
+         * try-with-resources
+         */
+        // in try() block we can initialize variables which can be automatically closed
+        try(BufferedReader bufferedFileReader = new BufferedReader(new FileReader(textFilePath))) {
+            String line = bufferedFileReader.readLine();
+            System.out.println(line);
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }
 
