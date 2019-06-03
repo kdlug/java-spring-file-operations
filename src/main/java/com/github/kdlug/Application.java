@@ -5,6 +5,9 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 import java.io.*;
+import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
+import java.nio.channels.WritableByteChannel;
 
 @SpringBootApplication
 public class Application implements CommandLineRunner {
@@ -42,7 +45,7 @@ public class Application implements CommandLineRunner {
         } finally {
             if (fileWriter != null) { // checks if our writer was initialized
                 // closes accesss to a file - important (OS have limits to allow to open f.ex. 2048 files at the same time)
-                // data are stored in buffer, so if we don't close a file wthey can be lost
+                // data are stored in buffer, so if we don't close a file they can be lost
                 fileWriter.close();
             }
         }
@@ -110,6 +113,43 @@ public class Application implements CommandLineRunner {
             e.printStackTrace();
         } catch (IOException e) {
             e.printStackTrace();
+        }
+
+        /**
+         * Channels
+         */
+        FileOutputStream outputFile = null;
+
+        try {
+            outputFile = new FileOutputStream(textFilePath);
+        } catch (FileNotFoundException e) {
+            e.printStackTrace(System.err);
+        }
+
+        // FileChannel outChannel = outputFile.getChannel();
+        WritableByteChannel writer = outputFile.getChannel();
+
+        BufferedReader bufferedFileReader = new BufferedReader(new FileReader(textFilePath));
+
+       // byte[] buffer = new byte[10_240];
+        ByteBuffer buffer = ByteBuffer.allocate(1024);
+        System.out.println("New buffer:           position = " + buffer.position() + "\tLimit = "
+                + buffer.limit() + "\tcapacity = " + buffer.capacity());
+
+         int limit;
+        while ((limit = bufferedFileReader.read(buffer)) >= 0) {
+            writer.write(buffer);
+        }
+
+        System.out.println("Buffer after loading: position = " + buffer.position() + "\tLimit = "
+                + buffer.limit() + "\tcapacity = " + buffer.capacity());
+
+        try {
+            writer.write(buffer);
+            outputFile.close();
+            System.out.println("Buffer contents written to file.");
+        } catch (IOException e) {
+            e.printStackTrace(System.err);
         }
     }
 }
